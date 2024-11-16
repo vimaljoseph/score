@@ -3,24 +3,36 @@ const path = require('path');
 
 exports.handler = async (event) => {
   try {
-    const formData = JSON.parse(event.body);
+    console.log('Received event:', event);
 
-    // Save scores and uploaded photo (mock implementation)
-    const { participantName, themeScore, htmlScore, designScore } = formData;
+    // Ensure the request is a POST
+    if (event.httpMethod !== 'POST') {
+      return {
+        statusCode: 405,
+        body: JSON.stringify({ message: 'Method Not Allowed' }),
+      };
+    }
 
-    // Save the data (in a real app, use a database)
+    // Log the event body for debugging
+    const formData = event.body;
+    console.log('Form data:', formData);
+
+    const { participantName, themeScore, htmlScore, designScore } = JSON.parse(formData);
+
+    // Mock saving data
     const filePath = path.join('/tmp', `${participantName}.json`);
     await writeFile(filePath, JSON.stringify({ themeScore, htmlScore, designScore }));
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Submission successful!' })
+      body: JSON.stringify({ message: 'Submission successful!' }),
     };
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in handleForm:', error);
+
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: 'Submission failed!' })
+      body: JSON.stringify({ message: 'Submission failed!', error: error.message }),
     };
   }
 };
