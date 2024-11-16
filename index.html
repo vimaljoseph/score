@@ -29,24 +29,25 @@
   <p id="responseMessage"></p>
 
   <script>
-    document.getElementById('scoreForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
+   document.getElementById('scoreForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
 
-      const formData = new FormData(this);
+  const formData = new FormData(this);
 
-      try {
-        const response = await fetch('/.netlify/functions/handleForms', {
-          method: 'POST',
-          body: formData, // FormData handles files automatically
-        });
-
-        const result = await response.json();
-        document.getElementById('responseMessage').textContent = result.message;
-      } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('responseMessage').textContent = 'Submission failed!';
-      }
+  try {
+    const response = await fetch('/.netlify/functions/handleForms', {
+      method: 'POST',
+      body: formData, // FormData includes file data automatically
     });
+
+    const result = await response.json();
+    document.getElementById('responseMessage').textContent = result.message;
+  } catch (error) {
+    console.error('Error:', error);
+    document.getElementById('responseMessage').textContent = 'Submission failed!';
+  }
+});
+
   </script>
 </body>
 </html>
