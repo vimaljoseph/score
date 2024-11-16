@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-  <title>Website Competition Scoring</title>
+  <title>Website Design Competition Scoring</title>
 </head>
 <body>
   <h1>Website Design Competition Scoring</h1>
@@ -22,13 +21,33 @@
     <input type="number" id="designScore" name="designScore" min="0" max="20" required>
 
     <label for="photo">Upload Screenshot:</label>
-    <input type="file" id="photo" name="photo" accept="image/*" required>
+    <input type="file" id="photo" name="photo" accept="image/*">
 
     <button type="submit">Submit</button>
   </form>
+
   <p id="responseMessage"></p>
 
-  <script src="app.js"></script>
+  <script>
+    document.getElementById('scoreForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+
+      try {
+        const response = await fetch('/.netlify/functions/handleForms', {
+          method: 'POST',
+          body: formData, // FormData handles files automatically
+        });
+
+        const result = await response.json();
+        document.getElementById('responseMessage').textContent = result.message;
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('responseMessage').textContent = 'Submission failed!';
+      }
+    });
+  </script>
 </body>
 </html>
 

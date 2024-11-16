@@ -1,39 +1,83 @@
-const { writeFile } = require('fs/promises');
+const Busboy = require('busboy');
+const fs = require('fs');
 const path = require('path');
 
 exports.handler = async (event) => {
-  try {
-    console.log('Received event:', event);
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers: { 'Allow': 'POST' },
+      body: JSON.stringify({ message: 'Method Not Allowed' }),
+    };
+  }
 
-    // Ensure the request is a POST
-    if (event.httpMethod !== 'POST') {
+  if (event.headers['content-type']?.includes('multipart/form-data')) {
+    const busboy = new Busboy({ headers: event.headers });
+    const result = {};
+    const uploads = [];
+
+    return new Promise((resolve, reject) => {
+      busboy.on('field', (fieldname, value) => {
+        result[fieldname] = value;
+      });
+
+      busboy.on('file', (fieldname, file, filename) => {
+        const uploadPath = path.join('/tmp', filename);
+        uploads.push(uploadPath);
+
+        const writeStream = fs.createWriteStream(uploadPath);
+        file.pipe(writeStream);
+
+        file.on('end', () => {
+          console.log(`File [${fieldname}] received: ${filename}`);
+        });
+      });
+
+      busboy.on('finish', () => {
+        console.log('Form data:', result);
+        console.log('Uploaded files:', uploads);
+        resolve({
+          statusCode: 200,
+          body: JSON.stringify({
+            message: 'Submission successful!',
+            data: result,
+            files: uploads,
+          }),
+        });
+      });
+
+      busboy.on('error', (err) => {
+        console.error('Error in busboy:', err);
+        reject({
+          statusCode: 500,
+          body: JSON.stringify({ message: 'File upload failed!', error: err.message }),
+        });
+      });
+
+      busboy.end(event.body);
+    });
+  } else {
+    try {
+      const formData = JSON.parse(event.body);
+      console.log('Received JSON data:', formData);
+
+      const { participantName, themeScore, htmlScore, designScore } = formData;
+
+      // Save data to /tmp (or another storage location)
+      const filePath = path.join('/tmp', `${participantName}.json`);
+      fs.writeFileSync(filePath, JSON.stringify({ themeScore, htmlScore, designScore }));
+
       return {
-        statusCode: 405,
-        body: JSON.stringify({ message: 'Method Not Allowed' }),
+        statusCode: 200,
+        body: JSON.stringify({ message: 'Submission successful!' }),
+      };
+    } catch (error) {
+      console.error('Error:', error);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ message: 'Submission failed!', error: error.message }),
       };
     }
-
-    // Log the event body for debugging
-    const formData = event.body;
-    console.log('Form data:', formData);
-
-    const { participantName, themeScore, htmlScore, designScore } = JSON.parse(formData);
-
-    // Mock saving data
-    const filePath = path.join('/tmp', `${participantName}.json`);
-    await writeFile(filePath, JSON.stringify({ themeScore, htmlScore, designScore }));
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: 'Submission successful!' }),
-    };
-  } catch (error) {
-    console.error('Error in handleForm:', error);
-
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Submission failed!', error: error.message }),
-    };
   }
 };
 
