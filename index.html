@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Website Competition Scoring</title>
+</head>
+<body>
+  <h1>Website Design Competition Scoring</h1>
+  <form id="scoreForm" enctype="multipart/form-data">
+    <label for="participantName">Participant Name:</label>
+    <input type="text" id="participantName" name="participantName" required>
+
+    <label for="themeScore">Relevance to Theme (0-30):</label>
+    <input type="number" id="themeScore" name="themeScore" min="0" max="30" required>
+
+    <label for="htmlScore">HTML Code Quality (0-20):</label>
+    <input type="number" id="htmlScore" name="htmlScore" min="0" max="20" required>
+
+    <label for="designScore">Design Aesthetics (0-20):</label>
+    <input type="number" id="designScore" name="designScore" min="0" max="20" required>
+
+    <label for="photo">Upload Screenshot:</label>
+    <input type="file" id="photo" name="photo" accept="image/*" required>
+
+    <button type="submit">Submit</button>
+  </form>
+  <p id="responseMessage"></p>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
